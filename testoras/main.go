@@ -9,6 +9,7 @@ import (
 
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
+	// "oras.land/oras-go/v2/registry/remote/auth"
 )
 
 func main() {
@@ -36,14 +37,12 @@ func main() {
 
 	orasClient := &auth.Client{
 		// expectedHostAddress is of form ipaddr:port
-		Credential: auth.StaticCredential("ghcr.io", auth.Credential{
-			Username:    "github",
+		Credential: auth.StaticCredential("ghcr.io:443", auth.Credential{
 			AccessToken: token,
 		}),
 	}
 
 	repo, err := remote.NewRepository(url)
-	// fmt.Printf("repo: %s/%s\n", hetznerNodeImageRegistry, strings.TrimSuffix(fileName, "-release.json"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,6 +57,8 @@ func main() {
 		log.Fatal(err)
 	}
 	if exist {
-		log.Println("already exists, Refusing to overwrite it")
+		fmt.Printf("%s exists\n", url)
+	} else {
+		fmt.Printf("%s does not exist\n", url)
 	}
 }
