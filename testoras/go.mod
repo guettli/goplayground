@@ -1,6 +1,6 @@
-module example.com/max
+module github.com/guettli/goplayground/testoras
 
-go 1.20
+go 1.21.0
 
 require oras.land/oras-go/v2 v2.3.1
 
