@@ -16,17 +16,17 @@ func main() {
 		fmt.Println("One argument needed: url. Example ghcr.io/foo/bar:tag")
 		os.Exit(1)
 	}
-	url := os.Args[1]
-	if strings.HasPrefix(url, "http") {
+	urlWithTag := os.Args[1]
+	if strings.HasPrefix(urlWithTag, "http") {
 		fmt.Println("url should not start with http. Example: ghcr.io/foo/bar:tag")
 		os.Exit(1)
 	}
-	parts := strings.Split(url, ":")
+	parts := strings.Split(urlWithTag, ":")
 	if len(parts) == 1 {
 		fmt.Println("Missing :tag in url")
 		os.Exit(1)
 	}
-	url = strings.Join(parts[0:len(parts)-1], ":")
+	urlOfRepo := strings.Join(parts[0:len(parts)-1], ":")
 	tag := parts[len(parts)-1]
 
 	token := os.Getenv("GITHUB_TOKEN")
@@ -37,14 +37,14 @@ func main() {
 
 	ctx := context.Background()
 
-	parts = strings.Split(url, "/")
+	parts = strings.Split(urlOfRepo, "/")
 	if len(parts) == 1 {
-		fmt.Printf("failed to parse url %q\n", url)
+		fmt.Printf("failed to parse url %q\n", urlOfRepo)
 		os.Exit(1)
 	}
 	regName := parts[0]
 
-	repo, err := remote.NewRepository(url)
+	repo, err := remote.NewRepository(urlOfRepo)
 	if err != nil {
 		log.Fatal("Repository failed", err)
 	}
@@ -66,8 +66,8 @@ func main() {
 		log.Fatal(err)
 	}
 	if exist {
-		fmt.Printf("%s exists\n", url)
+		fmt.Printf("%s exists\n", urlWithTag)
 	} else {
-		fmt.Printf("%s does not exist\n", url)
+		fmt.Printf("%s does not exist\n", urlWithTag)
 	}
 }
