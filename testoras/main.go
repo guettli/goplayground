@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 
-	credentials "github.com/oras-project/oras-credentials-go"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
@@ -18,6 +17,10 @@ func main() {
 		os.Exit(1)
 	}
 	url := os.Args[1]
+	if strings.HasPrefix(url, "http") {
+		fmt.Println("url should not start with http. Example: ghcr.io/foo/bar:tag")
+		os.Exit(1)
+	}
 	parts := strings.Split(url, ":")
 	if len(parts) == 1 {
 		fmt.Println("Missing :tag in url")
@@ -25,7 +28,6 @@ func main() {
 	}
 	url = strings.Join(parts[0:len(parts)-1], ":")
 	tag := parts[len(parts)-1]
-	//fmt.Printf("url: %s tag: %s\n", url, tag)
 
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
@@ -35,35 +37,25 @@ func main() {
 
 	ctx := context.Background()
 
-	reg, err := remote.NewRegistry("ghcr.io")
-	if err != nil {
-		log.Fatalf("NewRegistry failed: %q", err.Error())
+	parts = strings.Split(url, "/")
+	if len(parts) == 1 {
+		fmt.Printf("failed to parse url %q\n", url)
+		os.Exit(1)
 	}
+	regName := parts[0]
 
-	repo, err := reg.Repository(ctx, "ghcr.io")
+	repo, err := remote.NewRepository(url)
 	if err != nil {
 		log.Fatal("Repository failed", err)
 	}
 
-	storeOpts := credentials.StoreOptions{}
-	credStore, err := credentials.NewStoreFromDocker(storeOpts)
-	if err != nil {
-		log.Fatalf("NewStoreFromDocker failed: %q", err.Error())
+	repo.Client = &auth.Client{
+		// expectedHostAddress is of form ipaddr:port
+		Credential: auth.StaticCredential(regName, auth.Credential{
+			Username: "github",
+			Password: token,
+		}),
 	}
-
-	err = credentials.Login(ctx, credStore, reg, auth.Credential{
-		Username: "guettli",
-		Password: token,
-	})
-	if err != nil {
-		fmt.Printf("Login failed: %q\n", err.Error())
-		os.Exit(1)
-	}
-	err = reg.Ping(ctx)
-	if err != nil {
-		log.Fatalf("Ping failed: %q", err.Error())
-	}
-	///////
 
 	descriptor, err := repo.Resolve(ctx, tag)
 	if err != nil {
