@@ -1,5 +1,8 @@
 package main
 
+// For ghcr.io: github your settings, developer settings, then "classic token", then give access to read and write packages.
+// Store the token together with the name and the expire date.
+
 import (
 	"context"
 	"fmt"
